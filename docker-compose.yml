@@ -21,9 +21,6 @@ services:
       - DB_PASSWORD=postgres
       - JWT_SECRET=your_jwt_secret
       - JWT_EXPIRES_IN=24h
-    volumes:
-      - ./:/usr/src/app
-      - /usr/src/app/node_modules
     restart: unless-stopped
 
   postgres:
