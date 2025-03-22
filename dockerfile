@@ -1,25 +1,25 @@
 FROM node:18-alpine
 
-# Create app directory
+# Crear directorio de la aplicación
 WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json
+# Copiar solo los archivos de dependencias primero
 COPY package*.json ./
 
-# Install all dependencies (including dev dependencies)
-RUN npm install
+# Instalar dependencias de producción y desarrollo explícitamente
+RUN npm install --production=false
 
-# Copy source code
+# Copiar el código fuente
 COPY . .
 
-# Install global TypeScript
-RUN npm install -g typescript
-
-# Build TypeScript code
+# Compilar TypeScript a JavaScript
 RUN npm run build
 
-# Expose port
+# Verificar la compilación
+RUN ls -la dist || echo "¡Error! No se encuentra el directorio dist"
+
+# Puerto de la aplicación
 EXPOSE 3000
 
-# Command to run the application
-CMD ["npm", "start"]
+# Comando para iniciar la aplicación
+CMD ["node", "dist/index.js"]
