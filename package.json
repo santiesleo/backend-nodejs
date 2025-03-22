@@ -71,7 +71,7 @@
   
   "scripts": {
     "build": "tsc",
-    "dev": "nodemon src/app.ts",
+    "dev": "nodemon src/index.ts",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "seed": "ts-node src/utils/seedDatabase.ts",

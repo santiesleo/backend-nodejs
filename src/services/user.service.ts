@@ -20,7 +20,6 @@ class UserService {
             const user = User.build({
                 email: userInput.email,
                 password: hashedPassword,
-                id: userInput.id || 0,
                 name: userInput.name || "Default Name"
             });
             

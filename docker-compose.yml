@@ -21,7 +21,12 @@ services:
       - DB_PASSWORD=postgres
       - JWT_SECRET=your_jwt_secret
       - JWT_EXPIRES_IN=24h
+    volumes:
+      - ./:/usr/src/app  # Monta el directorio actual en /usr/src/app dentro del contenedor
+      - /usr/src/app/node_modules  # Evita que node_modules local sobrescriba el del contenedor
+    command: npm run dev  # Opcional: usa nodemon para recargar automáticamente cuando hay cambios
     restart: unless-stopped
+
 
   postgres:
     container_name: postgres_db
