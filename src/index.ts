@@ -1,7 +1,7 @@
 //let express = require("express");
 import express, {Express, Request, Response} from 'express';
 import dotenv from 'dotenv';
-import {userRouter, postRouter} from './routes';
+import {userRouter, postRouter, categoryRouter} from './routes';
 import sequelize from "./config/database";
 
 dotenv.config();
@@ -13,6 +13,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended:true }))
 
 app.use('/user', userRouter);
+app.use('/api/categories', categoryRouter); // Añadido para rutas de categorías
 
 app.get('/', (req: Request, res: Response)=>{
     res.send("Hello World");
