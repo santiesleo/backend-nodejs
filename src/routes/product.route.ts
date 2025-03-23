@@ -9,14 +9,12 @@ import {
   deleteProduct 
 } from '../controllers/product.controller';
 
-const router = Router();
+export const productRouter = Router();
 
-// Todas las rutas son públicas por ahora
-router.get('/', getProducts);
-router.get('/:id', getProductById);
-router.get('/category/:categoryId', getProductsByCategory);
-router.post('/', createProduct);
-router.put('/:id', updateProduct);
-router.delete('/:id', deleteProduct);
-
-export default router;
+// Rutas públicas
+productRouter.get('/', getProducts);
+productRouter.get('/:id', getProductById);
+productRouter.get('/category/:categoryId', getProductsByCategory);
+productRouter.post('/', createProduct);
+productRouter.put('/:id', updateProduct);
+productRouter.delete('/:id', deleteProduct);
