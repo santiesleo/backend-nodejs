@@ -1,4 +1,3 @@
-// src/models/product.model.ts
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../config/database';
 import Category from './category.model';

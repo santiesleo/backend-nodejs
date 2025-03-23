@@ -80,31 +80,37 @@ class UserService {
         }
     }
     
-    public async login(userLogin: UserLogin): Promise<UserLoginResponse | undefined>{
+    public async login(userLogin: UserLogin): Promise<UserLoginResponse | undefined> {
         try {
-            const userExists: User | null = await this.findByEmail(userLogin.email);
-            if (userExists === null){
-                throw new AuthError("Not Authorized");
+          const userExists: User | null = await this.findByEmail(userLogin.email);
+          if (userExists === null) {
+            throw new AuthError("Not Authorized");
+          }
+          
+          const isMatch: boolean = await bcrypt.compare(userLogin.password, userExists.password);
+          if (!isMatch) {
+            throw new AuthError("Not Authorized");
+          }
+          
+          // Lista de correos que tendrán rol de admin
+          const adminEmails = ['admin@example.com', 'santiago@ejemplo.com'];
+          
+          // Determinar roles basado en el email
+          const roles = adminEmails.includes(userExists.email) ? ["admin"] : [];
+          
+          return {
+            user: {
+              id: userExists.id,
+              name: userExists.name,
+              email: userExists.email,
+              roles: roles,
+              token: this.generateToken(userExists)
             }
-            const isMatch: boolean = await bcrypt.compare(userLogin.password, userExists.password);  
-            if (!isMatch){
-                throw new AuthError("Not Authorized");
-                console.log("No hacen match");
-            }
-            return {
-                user:{
-                    id: userExists.id,
-                    name: userExists.name,
-                    email: userExists.email,
-                    roles: ["admin"], 
-                    token: this.generateToken(userExists)
-                }
-            }
+          };
         } catch (error) {
-            throw error;
+          throw error;
         }
-
-    }
+      }
 
     public generateToken(user: User): string {
         try {

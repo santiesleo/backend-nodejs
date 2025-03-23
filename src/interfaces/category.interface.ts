@@ -1,4 +1,3 @@
-// src/interfaces/category.interface.ts
 export interface CategoryAttributes {
     id?: number;
     name: string;

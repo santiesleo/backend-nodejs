@@ -1,4 +1,3 @@
-// src/services/category.service.ts
 import Category from '../models/category.model';
 import { CategoryAttributes, CategoryCreationAttributes, CategoryUpdateAttributes } from '../interfaces/category.interface';
 

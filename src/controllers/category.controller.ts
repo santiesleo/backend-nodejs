@@ -1,4 +1,3 @@
-// src/controllers/category.controller.ts
 import { Request, Response } from 'express';
 import { categoryService } from '../services/category.service';
 import { categorySchema, updateCategorySchema } from '../schemas/category.schema';

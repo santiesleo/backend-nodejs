@@ -1,4 +1,3 @@
-// src/services/product.service.ts
 import Product from "../models/product.model";
 import Category from "../models/category.model";
 

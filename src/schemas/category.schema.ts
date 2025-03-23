@@ -1,4 +1,3 @@
-// src/schemas/category.schema.ts
 import { object, string } from 'zod';
 
 export const categorySchema = object({
