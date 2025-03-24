@@ -1,4 +1,5 @@
 import Category from '../models/category.model';
+import Product from '../models/product.model';
 import { CategoryAttributes, CategoryCreationAttributes, CategoryUpdateAttributes } from '../interfaces/category.interface';
 
 class CategoryService {
@@ -36,6 +37,14 @@ class CategoryService {
                 returning: true
             });
             return category || null;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    public async hasProducts(id: number): Promise<number> {
+        try {
+            return await Product.count({ where: { category_id: id } });
         } catch (error) {
             throw error;
         }

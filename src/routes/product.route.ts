@@ -1,3 +1,4 @@
+// src/routes/product.route.ts
 import { Router } from 'express';
 import { 
   getProducts, 
@@ -7,13 +8,18 @@ import {
   updateProduct, 
   deleteProduct 
 } from '../controllers/product.controller';
+//import { auth } from '../middlewares/auth.middleware';
+import { productAuth } from '../middlewares/product-auth-middleware';
+import { checkAdmin } from '../middlewares/role.middleware';
 
 export const productRouter = Router();
 
-// Rutas públicas
+// Rutas públicas (para cliente y admin)
 productRouter.get('/', getProducts);
-productRouter.get('/:id', getProductById);
 productRouter.get('/category/:categoryId', getProductsByCategory);
-productRouter.post('/', createProduct);
-productRouter.put('/:id', updateProduct);
-productRouter.delete('/:id', deleteProduct);
+productRouter.get('/:id', getProductById);
+
+// Rutas protegidas (solo admin)
+productRouter.post('/', productAuth, checkAdmin, createProduct);
+productRouter.put('/:id', productAuth, checkAdmin, updateProduct);
+productRouter.delete('/:id', productAuth, checkAdmin, deleteProduct);

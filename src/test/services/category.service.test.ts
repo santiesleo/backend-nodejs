@@ -1,6 +1,6 @@
-
 import { categoryService } from '../../services/category.service';
 import Category from '../../models/category.model';
+import Product from '../../models/product.model';
 
 // Mock del modelo Category
 jest.mock('../../models/category.model', () => ({
@@ -9,6 +9,11 @@ jest.mock('../../models/category.model', () => ({
   create: jest.fn(),
   update: jest.fn(),
   findOne: jest.fn()
+}));
+
+// Mock del modelo Product
+jest.mock('../../models/product.model', () => ({
+  count: jest.fn()
 }));
 
 describe('CategoryService', () => {
@@ -102,6 +107,20 @@ describe('CategoryService', () => {
       const result = await categoryService.update(999, { name: 'Test' });
 
       expect(result).toBeNull();
+    });
+  });
+
+  describe('hasProducts', () => {
+    it('should return number of products associated with category', async () => {
+      const categoryId = 1;
+      const mockCount = 5;
+      
+      (Product.count as jest.Mock).mockResolvedValue(mockCount);
+
+      const result = await categoryService.hasProducts(categoryId);
+      
+      expect(Product.count).toHaveBeenCalledWith({ where: { category_id: categoryId } });
+      expect(result).toBe(mockCount);
     });
   });
 
