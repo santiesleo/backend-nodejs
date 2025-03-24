@@ -83,6 +83,15 @@ export const updateCategory = async (req: Request, res: Response) => {
 };
 
 export const deleteCategory = async (req: Request, res: Response) => {
+    // Depuración detallada
+    console.log("\n--- DELETE CATEGORY DEBUG ---");
+    console.log("Original URL:", req.originalUrl);
+    console.log("Route path:", req.route?.path);
+    console.log("Params object:", JSON.stringify(req.params));
+    console.log("ID as string:", req.params.id);
+    console.log("ID after parseInt:", parseInt(req.params.id));
+    console.log("---------------------------\n");
+    
     try {
         const id = parseInt(req.params.id);
         
@@ -111,3 +120,4 @@ export const deleteCategory = async (req: Request, res: Response) => {
         return res.status(500).json({ message: 'Internal server error' });
     }
 };
+
