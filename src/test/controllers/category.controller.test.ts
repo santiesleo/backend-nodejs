@@ -15,7 +15,8 @@ jest.mock('../../services/category.service', () => ({
     findById: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
-    delete: jest.fn()
+    delete: jest.fn(),
+    hasProducts: jest.fn() // Añadido hasProducts
   }
 }));
 
@@ -110,10 +111,7 @@ describe('CategoryController', () => {
     });
 
     it('should handle errors and return status 500', async () => {
-      
-        
       mockRequest.body = { name: 'Test Category', description: 'Test description' };
-      
       
       (categoryService.create as jest.Mock).mockRejectedValue(new Error('Server error'));
 
@@ -160,22 +158,44 @@ describe('CategoryController', () => {
       
       mockRequest.params = { id: '1' };
       
+      // Mock para hasProducts
+      (categoryService.hasProducts as jest.Mock).mockResolvedValue(0);
       (categoryService.delete as jest.Mock).mockResolvedValue(mockDeletedCategory);
 
       await deleteCategory(mockRequest as Request, mockResponse as Response);
 
+      expect(categoryService.hasProducts).toHaveBeenCalledWith(1);
       expect(categoryService.delete).toHaveBeenCalledWith(1);
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Category deleted successfully' });
     });
 
+    it('should return 400 if category has associated products', async () => {
+      mockRequest.params = { id: '1' };
+      
+      // Simular que la categoría tiene productos asociados
+      (categoryService.hasProducts as jest.Mock).mockResolvedValue(2);
+
+      await deleteCategory(mockRequest as Request, mockResponse as Response);
+
+      expect(categoryService.hasProducts).toHaveBeenCalledWith(1);
+      expect(categoryService.delete).not.toHaveBeenCalled();
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(mockResponse.json).toHaveBeenCalledWith({ 
+        message: 'Cannot delete category. There are 2 products associated with it. Please reassign or delete these products first.' 
+      });
+    });
+
     it('should return 404 if category to delete not found', async () => {
       mockRequest.params = { id: '999' };
       
+      (categoryService.hasProducts as jest.Mock).mockResolvedValue(0);
       (categoryService.delete as jest.Mock).mockResolvedValue(null);
 
       await deleteCategory(mockRequest as Request, mockResponse as Response);
 
+      expect(categoryService.hasProducts).toHaveBeenCalledWith(999);
+      expect(categoryService.delete).toHaveBeenCalledWith(999);
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Category not found' });
     });
