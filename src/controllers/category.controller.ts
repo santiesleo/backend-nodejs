@@ -90,6 +90,15 @@ export const deleteCategory = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'Invalid category ID' });
         }
         
+        // Verificar si hay productos asociados a esta categoría
+        const productsCount = await categoryService.hasProducts(id);
+        
+        if (productsCount > 0) {
+            return res.status(400).json({ 
+                message: `Cannot delete category. There are ${productsCount} products associated with it. Please reassign or delete these products first.` 
+            });
+        }
+        
         const deletedCategory = await categoryService.delete(id);
         
         if (!deletedCategory) {
