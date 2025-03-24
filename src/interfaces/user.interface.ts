@@ -1,6 +1,6 @@
 // Interfaz para crear un usuario
 export interface UserInput {
-    id: number
+    id?: number
     name: string,
     email: string, 
     password: string
