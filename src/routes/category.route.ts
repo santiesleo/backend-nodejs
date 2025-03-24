@@ -5,11 +5,11 @@ import { checkAdmin } from '../middlewares/role.middleware';
 
 export const categoryRouter = Router();
 
-// Rutas públicas (cualquiera puede ver las categorías)
+// Rutas publicas
 categoryRouter.get('/', categoryController.getCategories);
 categoryRouter.get('/:id', categoryController.getCategoryById);
 
-// Rutas protegidas (solo administradores pueden modificar categorías)
+// Operaciones protegidas
 categoryRouter.post('/', auth, checkAdmin, categoryController.createCategory);
 categoryRouter.put('/:id', auth, checkAdmin, categoryController.updateCategory);
 categoryRouter.delete('/:id', auth, checkAdmin, categoryController.deleteCategory);
