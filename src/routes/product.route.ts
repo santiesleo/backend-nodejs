@@ -8,7 +8,8 @@ import {
   updateProduct, 
   deleteProduct 
 } from '../controllers/product.controller';
-import { auth } from '../middlewares/auth.middleware';
+//import { auth } from '../middlewares/auth.middleware';
+import { productAuth } from '../middlewares/product-auth-middleware';
 import { checkAdmin } from '../middlewares/role.middleware';
 
 export const productRouter = Router();
@@ -19,6 +20,6 @@ productRouter.get('/category/:categoryId', getProductsByCategory);
 productRouter.get('/:id', getProductById);
 
 // Rutas protegidas (solo admin)
-productRouter.post('/', auth, checkAdmin, createProduct);
-productRouter.put('/:id', auth, checkAdmin, updateProduct);
-productRouter.delete('/:id', auth, checkAdmin, deleteProduct);
+productRouter.post('/', productAuth, checkAdmin, createProduct);
+productRouter.put('/:id', productAuth, checkAdmin, updateProduct);
+productRouter.delete('/:id', productAuth, checkAdmin, deleteProduct);
