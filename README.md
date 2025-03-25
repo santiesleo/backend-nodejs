@@ -70,7 +70,7 @@ Esta API implementa un sistema de gestión de usuarios, productos y categorías 
 
 1. Clonar el repositorio:
    ```bash
-   git clone [https://github.com/tu-usuario/tu-repositorio.git](https://github.com/santiesleo/backend-nodejs.git)
+   git clone ![https://github.com/tu-usuario/tu-repositorio.git](https://github.com/santiesleo/backend-nodejs.git)
    cd backend-nodejs
    ```
 
