@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import * as categoryController from '../controllers/category.controller';
 //import { auth } from '../middlewares/auth.middleware';
-import { productAuth } from '../middlewares/product-auth-middleware';
+import { productAuth } from '../middlewares/productAuth.middleware';
 import { checkAdmin } from '../middlewares/role.middleware';
 
 export const categoryRouter = Router();

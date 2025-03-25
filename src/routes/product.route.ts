@@ -8,7 +8,7 @@ import {
   deleteProduct 
 } from '../controllers/product.controller';
 //import { auth } from '../middlewares/auth.middleware';
-import { productAuth } from '../middlewares/product-auth-middleware';
+import { productAuth } from '../middlewares/productAuth.middleware';
 import { checkAdmin } from '../middlewares/role.middleware';
 
 export const productRouter = Router();
