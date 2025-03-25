@@ -1,4 +1,3 @@
-// src/test/controllers/product.controller.test.ts
 import { Request, Response } from 'express';
 import { 
   getProducts, 

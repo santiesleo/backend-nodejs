@@ -16,7 +16,7 @@ jest.mock('../../services/category.service', () => ({
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
-    hasProducts: jest.fn() // Añadido hasProducts
+    hasProducts: jest.fn() 
   }
 }));
 

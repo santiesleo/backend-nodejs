@@ -1,4 +1,3 @@
-
 import { Request, Response, NextFunction } from "express";
 
 export const checkAdmin = (req: Request, res: Response, next: NextFunction) => {
@@ -18,7 +17,7 @@ export const checkAdmin = (req: Request, res: Response, next: NextFunction) => {
   next();
 };
 
-// Mantenemos la función original por si la necesitas en el futuro
+
 export const checkRole = (roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     // Si no tiene usuario logueado
