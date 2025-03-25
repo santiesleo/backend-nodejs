@@ -1,17 +1,21 @@
 # Node.js PostgreSQL RESTful API
 
-Esta API implementa un sistema de gestión de usuarios con autenticación y autorización basado en JWT, construido con Node.js, TypeScript y PostgreSQL.
+Esta API implementa un sistema de gestión de usuarios, productos y categorías con autenticación y autorización basado en JWT, construido con Node.js, TypeScript y PostgreSQL.
+
+## Integrantes
+
+- Juan David Calderón Salamanca 
+- Santiago Escobar León
 
 ## Características
 
 - Sistema de autenticación y autorización con JWT
-- Gestión de usuarios con roles (superadmin y usuario regular)
-- Gestión de roles y permisos
-- Operaciones CRUD completas
-- Validación de datos
+- Gestión de usuarios con roles (admin y usuario regular)
+- Gestión de productos y categorías
+- Operaciones CRUD completas para todas las entidades
+- Validación de datos con Zod
 - Manejo de errores global
-- Pruebas unitarias y de integración
-- Documentación de API
+- Pruebas unitarias con Jest
 - Clean Architecture
 
 ## Tecnologías utilizadas
@@ -24,6 +28,8 @@ Esta API implementa un sistema de gestión de usuarios con autenticación y auto
 - JWT (jsonwebtoken)
 - bcrypt (encriptación de contraseñas)
 - Docker y Docker Compose
+- Jest (pruebas unitarias)
+- Zod (validación de esquemas)
 
 ## Estructura del proyecto
 
@@ -31,14 +37,16 @@ Esta API implementa un sistema de gestión de usuarios con autenticación y auto
 ├── src/
 │   ├── config/            # Configuración (base de datos, etc.)
 │   ├── controllers/       # Controladores de la API
-│   ├── middleware/        # Middleware (auth, error handling)
+│   ├── exceptions/        # Definiciones de errores personalizados
+│   ├── interfaces/        # Interfaces y tipos
+│   ├── middlewares/       # Middleware (auth, validación, roles)
 │   ├── models/            # Modelos de datos
 │   ├── routes/            # Definición de rutas
+│   ├── schemas/           # Esquemas de validación (Zod)
 │   ├── services/          # Lógica de negocio
-│   ├── tests/             # Pruebas unitarias y de integración
+│   ├── test/              # Pruebas unitarias
 │   ├── utils/             # Utilidades
-│   └── app.ts             # Punto de entrada de la aplicación
-├── .env                   # Variables de entorno
+│   └── index.ts           # Punto de entrada de la aplicación
 ├── .gitignore
 ├── docker-compose.yml
 ├── Dockerfile
@@ -49,10 +57,10 @@ Esta API implementa un sistema de gestión de usuarios con autenticación y auto
 
 ## Requisitos previos
 
-- Node.js (v14 o superior)
+- Node.js (v18 o superior)
 - npm o yarn
 - PostgreSQL (local o Docker)
-- Docker y Docker Compose (opcional, para ejecución en contenedores)
+- Docker y Docker Compose (para ejecución en contenedores)
 
 ## Instalación y configuración
 
@@ -70,7 +78,18 @@ Esta API implementa un sistema de gestión de usuarios con autenticación y auto
    ```
 
 3. Configurar variables de entorno:
-   Crear un archivo `.env` basado en `.env.example` y configurar las variables necesarias.
+   Crear un archivo `.env` con las siguientes variables:
+   ```
+   NODE_ENV=development
+   PORT=3000
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_NAME=api_db
+   DB_USER=postgres
+   DB_PASSWORD=postgres
+   JWT_SECRET=your_jwt_secret
+   JWT_EXPIRES_IN=24h
+   ```
 
 4. Compilar el código TypeScript:
    ```bash
@@ -79,7 +98,7 @@ Esta API implementa un sistema de gestión de usuarios con autenticación y auto
 
 5. Inicializar la base de datos:
    ```bash
-   npm run seed
+   npm run db:init
    ```
 
 6. Iniciar la aplicación:
@@ -87,52 +106,59 @@ Esta API implementa un sistema de gestión de usuarios con autenticación y auto
    npm start
    ```
 
+7. Para desarrollo:
+   ```bash
+   npm run dev
+   ```
+
 ### Opción 2: Usando Docker
 
 1. Clonar el repositorio:
    ```bash
-   git clone https://github.com/tu-usuario/tu-repositorio.git
-   cd tu-repositorio
+   git clone https://github.com/santiesleo/backend-nodejs.git
+   cd backend-nodejs
    ```
 
-2. Configurar variables de entorno:
-   Editar las variables en `docker-compose.yml` según sea necesario.
-
-3. Iniciar los contenedores:
+2. Iniciar los contenedores:
    ```bash
    docker-compose up -d
    ```
 
-4. Ejecutar el script de inicialización:
+3. Ejecutar el script de inicialización:
    ```bash
-   docker-compose exec app npm run seed
+   docker-compose exec app npm run db:init
    ```
 
 ## Endpoints de la API
 
 La API implementa los siguientes endpoints:
 
-### Autenticación
-
-- `POST /api/auth/register` - Registrar un nuevo usuario
-- `POST /api/auth/login` - Iniciar sesión y obtener token JWT
-- `GET /api/auth/profile` - Obtener perfil del usuario autenticado
-
 ### Usuarios
 
-- `GET /api/users` - Obtener todos los usuarios (solo superadmin)
-- `GET /api/users/:id` - Obtener usuario por ID (propio perfil o superadmin)
-- `POST /api/users` - Crear nuevo usuario (solo superadmin)
-- `PUT /api/users/:id` - Actualizar usuario (propio perfil o superadmin)
-- `DELETE /api/users/:id` - Eliminar usuario (solo superadmin)
+- `GET /user` - Obtener todos los usuarios
+- `GET /user/:id` - Obtener usuario por ID
+- `GET /user/profile` - Obtener perfil del usuario autenticado
+- `POST /user` - Crear nuevo usuario
+- `PUT /user/:id` - Actualizar usuario
+- `DELETE /user/:id` - Eliminar usuario
+- `POST /user/login` - Iniciar sesión y obtener token JWT
 
-### Roles
+### Categorías
 
-- `GET /api/roles` - Obtener todos los roles (solo superadmin)
-- `GET /api/roles/:id` - Obtener rol por ID (solo superadmin)
-- `POST /api/roles` - Crear nuevo rol (solo superadmin)
-- `PUT /api/roles/:id` - Actualizar rol (solo superadmin)
-- `DELETE /api/roles/:id` - Eliminar rol (solo superadmin)
+- `GET /category` - Obtener todas las categorías
+- `GET /category/:id` - Obtener categoría por ID
+- `POST /category` - Crear nueva categoría (solo admin)
+- `PUT /category/:id` - Actualizar categoría (solo admin)
+- `DELETE /category/:id` - Eliminar categoría (solo admin)
+
+### Productos
+
+- `GET /product` - Obtener todos los productos
+- `GET /product/:id` - Obtener producto por ID
+- `GET /product/category/:categoryId` - Obtener productos por categoría
+- `POST /product` - Crear nuevo producto (solo admin)
+- `PUT /product/:id` - Actualizar producto (solo admin)
+- `DELETE /product/:id` - Eliminar producto (solo admin)
 
 ## Autenticación
 
@@ -142,17 +168,11 @@ La API utiliza autenticación basada en tokens JWT. Para acceder a las rutas pro
 Authorization: Bearer <token>
 ```
 
-## Usuarios predeterminados
+## Roles y Permisos
 
-Al ejecutar el script de inicialización (`npm run seed`), se crean dos usuarios por defecto:
-
-1. Superadmin:
-   - Username: superadmin
-   - Password: superadmin123
-
-2. Usuario regular:
-   - Username: user
-   - Password: user123
+El sistema implementa dos tipos de roles:
+- **Usuario regular**: Acceso limitado a operaciones de lectura y gestión de su propio perfil
+- **Admin**: Acceso completo a todas las operaciones, incluida la gestión de productos y categorías
 
 ## Pruebas
 
@@ -162,37 +182,22 @@ Al ejecutar el script de inicialización (`npm run seed`), se crean dos usuarios
 npm test
 ```
 
+### Ejecutar pruebas con cobertura
+
+```bash
+npm test -- --coverage
+```
+
 ### Ejecutar pruebas en modo watch
 
 ```bash
 npm run test:watch
 ```
 
-## Documentación de Postman
-
-Se incluye una colección de Postman (`postman_collection.json`) con ejemplos de todas las operaciones disponibles en la API. Para utilizarla:
-
-1. Importar la colección en Postman
-2. Crear un entorno con las siguientes variables:
-   - `baseUrl`: URL base de la API (por defecto: http://localhost:3000/api)
-   - `token`: Token JWT (se actualizará automáticamente al iniciar sesión)
-
-## Despliegue en producción
-
-Para desplegar en producción, asegúrate de:
-
-1. Cambiar el valor de `NODE_ENV` a `production`
-2. Establecer un `JWT_SECRET` seguro
-3. Configurar credenciales seguras para la base de datos
-4. Utilizar HTTPS para todas las comunicaciones
-
 ## Consideraciones de seguridad
 
 - Todas las contraseñas se almacenan encriptadas usando bcrypt
 - Los tokens JWT tienen un tiempo de expiración configurable
 - Las rutas sensibles están protegidas por middleware de autenticación y autorización
-- Se implementa validación de datos en todas las entradas
-
-## Licencia
-
-Este proyecto está licenciado bajo [MIT License](LICENSE).
+- Se implementa validación de datos con Zod en todas las entradas
+- Middleware de roles para controlar el acceso a funcionalidades específicas
