@@ -20,7 +20,7 @@ const mockUserData = {
       findAll: jest.fn(),
       findByPk: jest.fn(),
       create: jest.fn(),
-      update: jest.fn(), // Añade este método
+      update: jest.fn(),
       build: jest.fn().mockReturnValue({
         save: jest.fn().mockResolvedValue({
           ...mockUserData,
