@@ -1,6 +1,6 @@
 ![ICESI University Logo](https://res.cloudinary.com/dxhi8xsyb/image/upload/v1731991202/ICESI_logo_prin_descriptor_RGB_POSITIVO_0924_bszq4w.png)
 
-# Node.js PostgreSQL RESTful API
+# Node.js PostgreSQL RESTful API 
 
 Esta API implementa un sistema de gestión de usuarios, productos y categorías con autenticación y autorización basado en JWT, construido con Node.js, TypeScript y PostgreSQL.
 
