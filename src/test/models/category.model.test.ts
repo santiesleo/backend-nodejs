@@ -23,24 +23,49 @@ jest.mock('sequelize', () => {
 });
 
 // Mock del config/database
-jest.mock('../config/database', () => ({
+jest.mock('../../config/database', () => ({
+  __esModule: true,
   default: {
     authenticate: jest.fn().mockResolvedValue(undefined),
     define: jest.fn().mockReturnValue({})
   }
 }));
 
-
-
-import Category from '../../models/category.model';
+// Importar después de mockear
+import { Category } from '../../models/category.model';
 
 describe('Category Model', () => {
-  it('should have the correct model definition', () => {
+  it('should have the correct model name', () => {
     expect(Category).toBeDefined();
   });
-  
-  // Opcional: Agregar alguna verificación más si lo deseas
-  it('should have a tableName property', () => {
-    expect(Category.tableName).toBe('categories');
+
+  it('should call Model.init with the correct parameters', () => {
+    // Verificar que Model.init fue llamado
+    expect(require('sequelize').Model.init).toHaveBeenCalled();
+    
+    // Obtener los argumentos con los que se llamó Model.init
+    const initArgs = require('sequelize').Model.init.mock.calls[0];
+    
+    // Verificar que se pasaron los atributos correctos
+    expect(initArgs[0]).toHaveProperty('id');
+    expect(initArgs[0]).toHaveProperty('name');
+    expect(initArgs[0]).toHaveProperty('description');
+    
+    // Verificar las propiedades de los atributos
+    expect(initArgs[0].id).toHaveProperty('type', 'INTEGER');
+    expect(initArgs[0].id).toHaveProperty('autoIncrement', true);
+    expect(initArgs[0].id).toHaveProperty('primaryKey', true);
+    
+    expect(initArgs[0].name).toHaveProperty('type', 'STRING');
+    expect(initArgs[0].name).toHaveProperty('allowNull', false);
+    expect(initArgs[0].name).toHaveProperty('unique', true);
+    
+    expect(initArgs[0].description).toHaveProperty('type', 'TEXT');
+    expect(initArgs[0].description).toHaveProperty('allowNull', false);
+    
+    // Verificar las opciones
+    expect(initArgs[1]).toHaveProperty('tableName', 'categories');
+    expect(initArgs[1]).toHaveProperty('modelName', 'Category');
+    expect(initArgs[1]).toHaveProperty('timestamps', true);
   });
 });
