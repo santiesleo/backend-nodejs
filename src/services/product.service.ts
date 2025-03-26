@@ -2,6 +2,7 @@ import Product from "../models/product.model";
 import Category from "../models/category.model";
 
 class ProductService {
+    // Recupera todos los productos junto con sus categorías relacionadas
     public async findAll(): Promise<Product[]> {
         try {
             const products = await Product.findAll({
@@ -13,6 +14,7 @@ class ProductService {
         }
     }
 
+     // Busca un producto específico por su ID e incluye su categoría relacionada
     public async findById(id: number): Promise<Product | null> {
         try {
             const product = await Product.findByPk(id, {
@@ -24,6 +26,8 @@ class ProductService {
         }
     }
 
+
+// Encuentra todos los productos que pertenecen a una categoría específica
     public async findByCategory(categoryId: number): Promise<Product[]> {
         try {
             const products = await Product.findAll({
