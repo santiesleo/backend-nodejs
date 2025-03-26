@@ -4,6 +4,8 @@
 
 Esta API implementa un sistema de gestión de usuarios, productos y categorías con autenticación y autorización basado en JWT, construido con Node.js, TypeScript y PostgreSQL.
 
+Enlace: https://backend-nodejs-production-4c8f.up.railway.app
+
 ## Integrantes
 
 - Juan David Calderón Salamanca 
