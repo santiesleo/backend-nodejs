@@ -14,7 +14,7 @@ export const productSchema = object({
   stock: number({
     required_error: "Stock is required"
   }).int().nonnegative("Stock must be a non-negative integer"),
-  category_id: string({
+  category_id: number({
     required_error: "Category ID is required"
   })
 });

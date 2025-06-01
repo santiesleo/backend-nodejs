@@ -3,13 +3,16 @@ import express, { Express, Request, Response } from 'express';
 import dotenv from 'dotenv';
 // NUEVO: Importar Apollo Server para GraphQL
 import { ApolloServer } from 'apollo-server-express';
-import { userRouter, postRouter, productRouter } from './routes'; // MODIFICADO: Removido categoryRouter (migrado a GraphQL)
+import { userRouter, postRouter,  } from './routes'; 
 import sequelize from "./config/database";
 
 // NUEVO: Imports de GraphQL para categorías
-import { baseTypeDefs } from './schemas/base.typedefs';
-import { categoryTypeDefs } from './schemas/category.typedefs';
-import { categoryResolvers } from './resolvers/category.resolvers';
+import { baseTypeDefs } from './schemas';
+import { categoryTypeDefs } from './schemas';
+import { categoryResolvers } from './resolvers';
+
+import { productResolvers } from './resolvers';
+import { productTypeDefs } from './schemas';
 
 dotenv.config();
 
@@ -21,7 +24,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Rutas REST aún existentes 
 app.use('/user', userRouter);
-app.use('/api/products', productRouter); // Mantener hasta migrar productos
+
 
 app.get('/', (req: Request, res: Response) => {
     res.send("Hello World");
@@ -40,12 +43,13 @@ async function startApolloServer() {
     const server = new ApolloServer({
         typeDefs: [
             baseTypeDefs,
-            categoryTypeDefs
+            categoryTypeDefs,
+            productTypeDefs,
             // resto de typeDefs se agregarán aquí
         ],
         resolvers: [
-            categoryResolvers
-            //agregaremos aqui el resto de los resolvers
+            categoryResolvers,
+            productResolvers,
         ],
         context: ({ req }: { req: any }) => {
             // TODO: Implementar autenticación JWT aquí
