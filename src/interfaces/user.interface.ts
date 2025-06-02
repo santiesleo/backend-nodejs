@@ -1,3 +1,5 @@
+import { Role } from '../models/role.model';
+
 // Interfaz para crear un usuario
 export interface UserInput {
     id?: number
@@ -29,12 +31,13 @@ export interface UserLoginResponse {
     }
 }
 
-// Interfaz para el modelo completo (opcional, útil para tipado)
+// Interfaz para el modelo completo
 export interface UserAttributes {
     id?: number;
     name: string;
     email: string;
     password: string;
+    roles?: Role[];
     createdAt?: Date;
     updatedAt?: Date;
 }

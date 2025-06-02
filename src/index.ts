@@ -13,6 +13,12 @@ import { categoryResolvers } from './resolvers';
 
 import { productResolvers } from './resolvers';
 import { productTypeDefs } from './schemas';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { mergeTypeDefs, mergeResolvers } from '@graphql-tools/merge';
+import { userTypeDefs } from './schemas/user.typedefs';
+import { userResolvers } from './resolvers/user.resolver';
+import { authMiddleware } from './middlewares/auth.middleware';
+import { Context } from './interfaces/context.interface';
 
 dotenv.config();
 
@@ -38,59 +44,40 @@ app.get('/notfound', (req: Request, res: Response) => {
     res.status(404).send("Hello World");
 });
 
-// inicializar GraphQL Server
-async function startApolloServer() {
-    const server = new ApolloServer({
-        typeDefs: [
-            baseTypeDefs,
-            categoryTypeDefs,
-            productTypeDefs,
-            // resto de typeDefs se agregarán aquí
-        ],
-        resolvers: [
-            categoryResolvers,
-            productResolvers,
-        ],
-        context: ({ req }: { req: any }) => {
-            // TODO: Implementar autenticación JWT aquí
-            return {};
-        },
-        formatError: (error) => {
-            console.error('GraphQL Error:', error);
-            return {
-                message: error.message,
-                code: error.extensions?.code,
-                path: error.path
-            };
-        },
-        introspection: true
-    });
+// Merge type definitions and resolvers
+const typeDefs = mergeTypeDefs([userTypeDefs]);
+const resolvers = mergeResolvers([userResolvers]);
 
+// Create executable schema
+const schema = makeExecutableSchema({ typeDefs, resolvers });
+
+// Create Apollo Server
+const server = new ApolloServer({
+  schema,
+  context: async ({ req }) => {
+    const context: Context = { req: req as any };
+    return authMiddleware(context);
+  },
+});
+
+async function startServer() {
+  try {
+    // Sync database
+    await sequelize.sync();
+    console.log('Database synced successfully');
+
+    // Start Apollo Server
     await server.start();
-    server.applyMiddleware({ 
-        app: app as any, 
-        path: '/graphql' 
+    server.applyMiddleware({ app: app as any });
+
+    // Start Express server
+    const PORT = process.env.PORT || 4000;
+    app.listen(PORT, () => {
+      console.log(`Server running at http://localhost:${PORT}${server.graphqlPath}`);
     });
-    
-    console.log(`GraphQL Server ready at http://localhost:${port}${server.graphqlPath}`);
-    
-    // CAMBIO IMPORTANTE: Iniciar Express server AQUÍ
-    app.listen(port, () => {
-        console.log(`Server is running on port ${port}`);
-    });
+  } catch (error) {
+    console.error('Error starting server:', error);
+  }
 }
 
-// MODIFICADO: Agregar inicialización de Apollo Server
-sequelize.authenticate()
-    .then(() => {
-        console.log('Database connected successfully.');
-        return sequelize.sync({ force: true }); // force:true recrea tablas 
-    })
-    .then(() => {
-        console.log('Database synchronized successfully.');
-        // NUEVO: Inicializar GraphQL Server (que también inicia Express)
-        return startApolloServer();
-    })
-    .catch((error) => {
-        console.error('Error connecting to database:', error);
-    });
+startServer();

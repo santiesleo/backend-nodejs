@@ -1,28 +1,28 @@
-import { Request, Response, NextFunction } from "express";
-import jwt, { TokenExpiredError } from "jsonwebtoken";
+import { AuthenticationError } from 'apollo-server-express';
+import jwt from 'jsonwebtoken';
+import { User } from '../models/user.model';
+import { Role } from '../models/role.model';
+import { Context } from '../interfaces/context.interface';
 
-export const auth = (req: Request, res: Response, next: NextFunction) => {
-    let token: string | undefined =  req.header("Authorization"); 
+export const authMiddleware = async (context: Context) => {
+  const authHeader = context.req?.headers.authorization;
 
-    if(!token){
-        res.status(401).json("Not Authorized");
-        return;
+  if (!authHeader) {
+    return context;
+  }
+
+  try {
+    const token = authHeader.replace('Bearer ', '');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as any;
+    
+    const user = await User.findByPk(decoded.id, { include: [Role] });
+    if (!user) {
+      throw new AuthenticationError('User not found');
     }
 
-    try {
-        //console.log("Token: "+token);
-        token = token.replace("Bearer ", "");
-        const decoded: any = jwt.verify(token, process.env.JWT_SECRET || "secret");
-        req.body.loggedUser = decoded;
-        console.log(decoded);
-        req.params.id = decoded.user.id;
-        next();
-    } catch (error) {
-        if (error instanceof TokenExpiredError){
-            res.status(401).json("Token Expired");
-            return;
-        }
-        res.status(401).json("Not Authorized");
-    }
-
-}
+    context.user = user;
+    return context;
+  } catch (error) {
+    throw new AuthenticationError('Invalid token');
+  }
+};

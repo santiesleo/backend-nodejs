@@ -1,15 +1,17 @@
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../config/database';
 import { UserAttributes } from '../interfaces/user.interface';
+import { Role } from './role.model';
 
 export class User extends Model<UserAttributes> implements UserAttributes {
     public id!: number;
     public name!: string;
     public email!: string;
     public password!: string;
+    public roles?: Role[];
 
     // Métodos para las asociaciones
-    declare getRoles: () => Promise<any[]>;
+    declare getRoles: () => Promise<Role[]>;
     declare addRoles: (roleIds: number[]) => Promise<void>;
     declare setRoles: (roleIds: number[]) => Promise<void>;
 }
@@ -46,5 +48,9 @@ User.init(
         paranoid: true,
     }
 );
+
+// Definir la relación muchos a muchos con Role
+User.belongsToMany(Role, { through: 'user_roles' });
+Role.belongsToMany(User, { through: 'user_roles' });
 
 export default User;

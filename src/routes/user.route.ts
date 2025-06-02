@@ -1,20 +1,23 @@
-import { Request, Response, Router } from "express";
+import { Router } from "express";
 import { userController } from "../controllers";
-import { auth, validateSchema } from "../middlewares";
+import { validateSchema } from "../middlewares/validateSchema.middleware";
 import { userSchema } from "../schemas";
+import { authMiddleware } from '../middlewares/auth.middleware';
 
-export const userRouter = Router();
+const router = Router();
 
-userRouter.get("/", userController.getAll);
-userRouter.post("/",validateSchema(userSchema),userController.create);
-userRouter.get("/profile", auth, userController.get);
-
-userRouter.get("/:id", userController.get);
-userRouter.put("/:id", userController.update);
-userRouter.delete("/:id",userController.delete);
-userRouter.post("/login", userController.login);
+// Rutas REST (mantenidas para compatibilidad durante la migración a GraphQL)
+router.get("/", userController.getAll);
+router.post("/", validateSchema(userSchema), userController.create);
+router.get("/profile", authMiddleware, userController.get);
+router.get("/:id", userController.get);
+router.put("/:id", userController.update);
+router.delete("/:id", userController.delete);
+router.post("/login", userController.login);
 
 /*
 userRouter.get("/", (req: Request, res: Response) => {
     res.send("Get all users");
 })*/
+
+export const userRouter = router;
