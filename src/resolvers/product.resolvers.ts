@@ -1,10 +1,38 @@
 import { productService } from '../services/product.service';
 import { productSchema } from '../schemas/product.schema';
 import { UserInputError } from 'apollo-server-express';
+import { ProductAttributes } from '../models/product.model';
+
+// Tipos para los resolvers
+interface ProductQueryArgs {
+  id: string;
+}
+
+interface ProductsByCategoryArgs {
+  categoryId: string;
+}
+
+interface CreateProductArgs {
+  input: Omit<ProductAttributes, 'id' | 'createdAt' | 'updatedAt'>;
+}
+
+interface UpdateProductArgs {
+  id: string;
+  input: Partial<Omit<ProductAttributes, 'id' | 'createdAt' | 'updatedAt'>>;
+}
+
+interface DeleteProductArgs {
+  id: string;
+}
+
+//interface GraphQLContext {
+  // aqui iran los datos del contexto de GraphQL, como autenticación, etc.
+ // user?: unknown;
+//}
 
 export const productResolvers = {
   Query: {
-    products: async () => {
+    products: async (): Promise<ProductAttributes[]> => {
       try {
         return await productService.findAll();
       } catch (error) {
@@ -12,27 +40,23 @@ export const productResolvers = {
       }
     },
 
-    product: async (_: any, { id }: { id: string }) => {
-      try {
-        const productId = parseInt(id);
-        
-        if (isNaN(productId)) {
-          throw new UserInputError('Invalid product ID');
-        }
-
-        const product = await productService.findById(productId);
-        
-        if (!product) {
-          throw new UserInputError('Product not found');
-        }
-
-        return product;
-      } catch (error) {
-        throw error;
+    product: async (_: unknown, { id }: ProductQueryArgs): Promise<ProductAttributes> => {
+      const productId = parseInt(id);
+      
+      if (isNaN(productId)) {
+        throw new UserInputError('Invalid product ID');
       }
+
+      const product = await productService.findById(productId);
+      
+      if (!product) {
+        throw new UserInputError('Product not found');
+      }
+
+      return product;
     },
 
-    productsByCategory: async (_: any, { categoryId }: { categoryId: string }) => {
+    productsByCategory: async (_: unknown, { categoryId }: ProductsByCategoryArgs): Promise<ProductAttributes[]> => {
       try {
         const catId = parseInt(categoryId);
         
@@ -48,12 +72,12 @@ export const productResolvers = {
   },
 
   Mutation: {
-    createProduct: async (_: any, { input }: { input: any }, context: any) => {
+    createProduct: async (_: unknown, { input }: CreateProductArgs): Promise<ProductAttributes> => {
       try {
         // Convertir category_id de string a number para validación
         const productData = {
           ...input,
-          category_id: parseInt(input.category_id)
+          category_id: parseInt(input.category_id.toString())
         };
 
         // Validar datos usando tu schema existente de Zod
@@ -90,7 +114,7 @@ export const productResolvers = {
       }
     },
 
-    updateProduct: async (_: any, { id, input }: { id: string, input: any }, context: any) => {
+    updateProduct: async (_: unknown, { id, input }: UpdateProductArgs): Promise<ProductAttributes> => {
       try {
         const productId = parseInt(id);
         
@@ -105,7 +129,7 @@ export const productResolvers = {
         }
 
         // Preparar datos para actualización con validaciones
-        const updateData: any = {};
+        const updateData: Partial<ProductAttributes> = {};
 
         if (input.nombre !== undefined) {
           if (!input.nombre || input.nombre.trim() === '') {
@@ -140,7 +164,7 @@ export const productResolvers = {
         }
 
         if (input.category_id !== undefined) {
-          const categoryId = parseInt(input.category_id);
+          const categoryId = parseInt(input.category_id.toString());
           if (isNaN(categoryId)) {
             throw new UserInputError('Invalid category ID');
           }
@@ -170,7 +194,7 @@ export const productResolvers = {
       }
     },
 
-    deleteProduct: async (_: any, { id }: { id: string }, context: any) => {
+    deleteProduct: async (_: unknown, { id }: DeleteProductArgs): Promise<boolean> => {
       try {
         const productId = parseInt(id);
         
@@ -197,9 +221,9 @@ export const productResolvers = {
 
   Product: {
     // Resolver para la relación con category
-    category: async (parent: any) => {
-      if (parent.category) {
-        return parent.category;
+    category: async (parent: ProductAttributes): Promise<unknown> => {
+      if ((parent as unknown as { category?: unknown }).category) {
+        return (parent as unknown as { category: unknown }).category;
       }
       // Si no viene incluida, la buscamos
       const Category = require('../models/category.model').default;
@@ -209,7 +233,7 @@ export const productResolvers = {
 
   Category: {
     // Resolver para la relación con products
-    products: async (parent: any) => {
+    products: async (parent: { id: number }): Promise<ProductAttributes[]> => {
       return await productService.findByCategory(parent.id);
     }
   }

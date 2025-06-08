@@ -1,66 +1,63 @@
 // index.ts - MIGRACIÓN A GRAPHQL
 import express, { Express, Request, Response } from 'express';
 import dotenv from 'dotenv';
-// NUEVO: Importar Apollo Server para GraphQL
+//Importar Apollo Server para GraphQL
 import { ApolloServer } from 'apollo-server-express';
-import { userRouter, postRouter,  } from './routes'; 
 import sequelize from "./config/database";
 
-// NUEVO: Imports de GraphQL para categorías
+//  Imports de GraphQL 
 import { baseTypeDefs } from './schemas';
 import { categoryTypeDefs } from './schemas';
 import { categoryResolvers } from './resolvers';
-
 import { productResolvers } from './resolvers';
 import { productTypeDefs } from './schemas';
 
 dotenv.config();
 
 const app: Express = express();
-const port: number = process.env.PORT as any || 3000;
+const port: number = parseInt(process.env.PORT || '3000', 10);
 
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true }));
 
-// Rutas REST aún existentes 
-app.use('/user', userRouter);
-
-
-app.get('/', (req: Request, res: Response) => {
+// Ruta de prueba básica
+app.get('/', (req: Request, res: Response): void => {
     res.send("Hello World");
 });
 
-app.get('/error', (req: Request, res: Response) => {
+// Ruta de prueba para errores 500
+app.get('/error', (req: Request, res: Response): void => {
     res.status(500).send("Hello World");
 });
 
-app.get('/notfound', (req: Request, res: Response) => {
+// Ruta de prueba para errores 404
+app.get('/notfound', (req: Request, res: Response): void => {
     res.status(404).send("Hello World");
 });
 
-// inicializar GraphQL Server
-async function startApolloServer() {
+// Inicializar GraphQL Server
+async function startApolloServer(): Promise<void> {
     const server = new ApolloServer({
         typeDefs: [
             baseTypeDefs,
             categoryTypeDefs,
             productTypeDefs,
-            // resto de typeDefs se agregarán aquí
         ],
         resolvers: [
             categoryResolvers,
             productResolvers,
         ],
-        context: ({ req }: { req: any }) => {
+        context: (): Record<string, unknown> => {
             // TODO: Implementar autenticación JWT aquí
             return {};
         },
-        formatError: (error) => {
+        formatError: (error: import('graphql').GraphQLError): import('graphql').GraphQLFormattedError => {
             console.error('GraphQL Error:', error);
             return {
                 message: error.message,
-                code: error.extensions?.code,
-                path: error.path
+                locations: error.locations,
+                path: error.path,
+                extensions: error.extensions
             };
         },
         introspection: true
@@ -68,19 +65,19 @@ async function startApolloServer() {
 
     await server.start();
     server.applyMiddleware({ 
-        app: app as any, 
+        app: app as unknown as Parameters<typeof server.applyMiddleware>[0]['app'], 
         path: '/graphql' 
     });
     
     console.log(`GraphQL Server ready at http://localhost:${port}${server.graphqlPath}`);
     
-    // CAMBIO IMPORTANTE: Iniciar Express server AQUÍ
+    // Iniciar Express server
     app.listen(port, () => {
         console.log(`Server is running on port ${port}`);
     });
 }
 
-// MODIFICADO: Agregar inicialización de Apollo Server
+// Inicialización de la base de datos y servidor
 sequelize.authenticate()
     .then(() => {
         console.log('Database connected successfully.');
@@ -88,9 +85,9 @@ sequelize.authenticate()
     })
     .then(() => {
         console.log('Database synchronized successfully.');
-        // NUEVO: Inicializar GraphQL Server (que también inicia Express)
+        // Inicializar GraphQL Server que también inicia Express
         return startApolloServer();
     })
-    .catch((error) => {
+    .catch((error: Error) => {
         console.error('Error connecting to database:', error);
     });
