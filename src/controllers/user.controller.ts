@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+
 import { User } from '../models';
 import { UserInput, UserLogin } from '../interfaces';
 import { userService } from "../services";

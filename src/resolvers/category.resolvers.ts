@@ -1,6 +1,7 @@
+import { AuthenticationError, UserInputError } from 'apollo-server-express';
+
 import { categoryService } from '../services/category.service';
 import { categorySchema, updateCategorySchema } from '../schemas/category.schema';
-import { AuthenticationError, UserInputError } from 'apollo-server-express';
 
 export const categoryResolvers = {
   Query: {

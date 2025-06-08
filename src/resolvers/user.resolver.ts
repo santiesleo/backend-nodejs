@@ -1,6 +1,7 @@
 import { AuthenticationError, UserInputError } from 'apollo-server-express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+
 import { User } from '../models/user.model';
 import { Role } from '../models/role.model';
 import { Context } from '../interfaces/context.interface';

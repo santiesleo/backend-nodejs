@@ -1,8 +1,9 @@
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+
 import { User } from "../models";
 import { UserInput, UserInputUpdate, UserLogin, UserLoginResponse } from "../interfaces";
 import { AuthError } from "../exceptions";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 
 class UserService {
 

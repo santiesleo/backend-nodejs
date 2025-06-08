@@ -1,6 +1,7 @@
+import { UserInputError } from 'apollo-server-express';
+
 import { productService } from '../services/product.service';
 import { productSchema } from '../schemas/product.schema';
-import { UserInputError } from 'apollo-server-express';
 
 export const productResolvers = {
   Query: {

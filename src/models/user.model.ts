@@ -1,6 +1,8 @@
 import { Model, DataTypes } from 'sequelize';
+
 import sequelize from '../config/database';
 import { UserAttributes } from '../interfaces/user.interface';
+
 import { Role } from './role.model';
 
 export class User extends Model<UserAttributes> implements UserAttributes {
