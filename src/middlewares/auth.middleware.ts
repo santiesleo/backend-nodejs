@@ -14,24 +14,30 @@ interface JwtPayload {
 }
 
 export const authMiddleware = async (context: Context): Promise<Context> => {
-  const authHeader = context.req?.headers.authorization;
+  const authHeader: string | undefined = context.req?.headers.authorization;
 
+  // Si no hay header de autorización, simplemente retorna el contexto sin usuario
   if (!authHeader) {
     return context;
   }
 
   try {
-    const token = authHeader.replace('Bearer ', '');
+    const token: string = authHeader.replace('Bearer ', '');
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as JwtPayload;
-    
+
+    // Buscar el usuario en la base de datos e incluir sus roles
     const user = await User.findByPk(decoded.id, { include: [Role] });
     if (!user) {
-      throw new AuthenticationError('User not found');
+      // Si no se encuentra el usuario, no lanzar error, solo dejar el usuario como undefined
+      context.user = undefined;
+      return context;
     }
 
     context.user = user;
     return context;
   } catch (error) {
-    throw new AuthenticationError('Invalid token');
+    // Si el token es inválido o expiró, no lanzar error, solo dejar el usuario como undefined
+    context.user = undefined;
+    return context;
   }
 };
