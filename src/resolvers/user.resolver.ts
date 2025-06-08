@@ -7,6 +7,7 @@ import { Role } from '../models/role.model';
 import { Context } from '../interfaces/context.interface';
 import { UserAttributes } from '../interfaces/user.interface';
 
+// Tipos para los argumentos de GraphQL
 interface CreateUserInput {
   name: string;
   email: string;
@@ -21,26 +22,62 @@ interface UpdateUserInput {
   roleIds?: number[];
 }
 
+interface UserArgs {
+  id: string;
+}
+
+interface LoginArgs {
+  email: string;
+  password: string;
+}
+
+interface UpdateUserArgs {
+  id: string;
+  input: UpdateUserInput;
+}
+
+interface CreateUserArgs {
+  input: CreateUserInput;
+}
+
+// Tipos de retorno
+interface AuthResponse {
+  token: string;
+  user: User;
+}
+
+// Tipo para el parent del resolver User
+interface UserParent {
+  id: number;
+  name: string;
+  email: string;
+  password: string;
+  roles?: Role[];
+  getRoles?: () => Promise<Role[]>;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
 export const userResolvers = {
   Query: {
-    me: async (_: any, __: any, { user }: Context) => {
+    me: async (_: unknown, __: unknown, { user }: Context): Promise<User | null> => {
       if (!user) throw new AuthenticationError('Not authenticated');
       return User.findByPk(user.id, { include: [Role] });
     },
 
-    users: async (_: any, __: any, { user }: Context) => {
+    users: async (_: unknown, __: unknown, { user }: Context): Promise<User[]> => {
       if (!user) throw new AuthenticationError('Not authenticated');
       return User.findAll({ include: [Role] });
     },
 
-    user: async (_: any, { id }: { id: string }, { user }: Context) => {
+    user: async (_: unknown, { id }: UserArgs, { user }: Context): Promise<User | null> => {
       if (!user) throw new AuthenticationError('Not authenticated');
       return User.findByPk(id, { include: [Role] });
     },
   },
 
   Mutation: {
-    register: async (_: any, { input }: { input: CreateUserInput }) => {
+    register: async (_: unknown, { input }: CreateUserArgs): Promise<AuthResponse> => {
       const { name, email, password, roleIds } = input;
 
       const existingUser = await User.findOne({ where: { email } });
@@ -76,7 +113,7 @@ export const userResolvers = {
       };
     },
 
-    login: async (_: any, { email, password }: { email: string; password: string }) => {
+    login: async (_: unknown, { email, password }: LoginArgs): Promise<AuthResponse> => {
       const user = await User.findOne({ where: { email }, include: [Role] });
       if (!user) {
         throw new UserInputError('Invalid credentials');
@@ -99,7 +136,7 @@ export const userResolvers = {
       };
     },
 
-    updateUser: async (_: any, { id, input }: { id: string; input: UpdateUserInput }, { user }: Context) => {
+    updateUser: async (_: unknown, { id, input }: UpdateUserArgs, { user }: Context): Promise<User> => {
       if (!user) throw new AuthenticationError('Not authenticated');
 
       const targetUser = await User.findByPk(id);
@@ -130,7 +167,7 @@ export const userResolvers = {
       return updatedUser;
     },
 
-    deleteUser: async (_: any, { id }: { id: string }, { user }: Context) => {
+    deleteUser: async (_: unknown, { id }: UserArgs, { user }: Context): Promise<boolean> => {
       if (!user) throw new AuthenticationError('Not authenticated');
 
       const targetUser = await User.findByPk(id);
@@ -148,8 +185,9 @@ export const userResolvers = {
       return true;
     },
   },
+
   User: {
-    roles: async (parent: any) => {
+    roles: async (parent: UserParent): Promise<Role[]> => {
       if (parent.roles && Array.isArray(parent.roles)) {
         return parent.roles;
       }
@@ -159,4 +197,4 @@ export const userResolvers = {
       return [];
     }
   }
-}; 
+};
