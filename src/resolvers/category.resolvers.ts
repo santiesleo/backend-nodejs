@@ -1,11 +1,47 @@
-import { AuthenticationError, UserInputError } from 'apollo-server-express';
+import { UserInputError } from 'apollo-server-express';
 
 import { categoryService } from '../services/category.service';
 import { categorySchema, updateCategorySchema } from '../schemas/category.schema';
+import Category from '../models/category.model';
+
+// Tipos para los argumentos de GraphQL
+interface CategoryArgs {
+  id: string;
+}
+
+interface CreateCategoryArgs {
+  input: {
+    name: string;
+    description: string;
+  };
+}
+
+interface UpdateCategoryArgs {
+  id: string;
+  input: {
+    name?: string;
+    description?: string;
+  };
+}
+
+interface DeleteCategoryArgs {
+  id: string;
+}
+
+// Tipo para el contexto (simplificado - para futura autenticación)
+//interface GraphQLContext {
+  //req: Express.Request;
+  //user?: {
+   // id: number;
+    //email: string;
+   // role: 'admin' | 'user';
+  //};
+  //isAuthenticated?: boolean;
+//}
 
 export const categoryResolvers = {
   Query: {
-    categories: async () => {
+    categories: async (): Promise<Category[]> => {
       try {
         return await categoryService.findAll();
       } catch (error) {
@@ -13,29 +49,25 @@ export const categoryResolvers = {
       }
     },
 
-    category: async (_: any, { id }: { id: string }) => {
-      try {
-        const categoryId = parseInt(id);
-        
-        if (isNaN(categoryId)) {
-          throw new UserInputError('Invalid category ID');
-        }
-
-        const category = await categoryService.findById(categoryId);
-        
-        if (!category) {
-          throw new UserInputError('Category not found');
-        }
-
-        return category;
-      } catch (error) {
-        throw error;
+    category: async (_: unknown, { id }: CategoryArgs): Promise<Category | null> => {
+      const categoryId = parseInt(id);
+      
+      if (isNaN(categoryId)) {
+        throw new UserInputError('Invalid category ID');
       }
+
+      const category = await categoryService.findById(categoryId);
+      
+      if (!category) {
+        throw new UserInputError('Category not found');
+      }
+
+      return category;
     }
   },
 
   Mutation: {
-    createCategory: async (_: any, { input }: { input: any }, context: any) => {
+    createCategory: async (_: unknown, { input }: CreateCategoryArgs): Promise<Category> => {
       // Por ahora sin autenticación, la agregaremos después
       try {
         const validationResult = categorySchema.safeParse(input);
@@ -55,7 +87,7 @@ export const categoryResolvers = {
       }
     },
 
-    updateCategory: async (_: any, { id, input }: { id: string, input: any }, context: any) => {
+    updateCategory: async (_: unknown, { id, input }: UpdateCategoryArgs): Promise<Category> => {
       try {
         const categoryId = parseInt(id);
         
@@ -85,7 +117,7 @@ export const categoryResolvers = {
       }
     },
 
-    deleteCategory: async (_: any, { id }: { id: string }, context: any) => {
+    deleteCategory: async (_: unknown, { id }: DeleteCategoryArgs): Promise<boolean> => {
       try {
         const categoryId = parseInt(id);
         
