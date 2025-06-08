@@ -2,10 +2,62 @@ import { UserInputError } from 'apollo-server-express';
 
 import { productService } from '../services/product.service';
 import { productSchema } from '../schemas/product.schema';
+import Category from '../models/category.model';
+import { Product, ProductAttributes } from '../models/product.model';
+
+// Tipos para los argumentos de GraphQL
+interface ProductArgs {
+  id: string;
+}
+
+interface ProductsByCategoryArgs {
+  categoryId: string;
+}
+
+interface CreateProductArgs {
+  input: {
+    nombre: string;
+    description: string;
+    price: number;
+    stock: number;
+    image?: string;
+    category_id: string; // Viene como string desde GraphQL
+  };
+}
+
+interface UpdateProductArgs {
+  id: string;
+  input: {
+    nombre?: string;
+    description?: string;
+    price?: number;
+    stock?: number;
+    image?: string;
+    category_id?: string; // Viene como string desde GraphQL
+  };
+}
+
+interface DeleteProductArgs {
+  id: string;
+}
+
+// Tipo para el contexto (simplificado)
+//interface GraphQLContext {
+  //req: Express.Request;
+//}
+
+// Tipo para el parent en resolvers
+interface ProductParent extends ProductAttributes {
+  category?: Category;
+}
+
+interface CategoryParent {
+  id: number;
+}
 
 export const productResolvers = {
   Query: {
-    products: async () => {
+    products: async (): Promise<Product[]> => {
       try {
         return await productService.findAll();
       } catch (error) {
@@ -13,27 +65,23 @@ export const productResolvers = {
       }
     },
 
-    product: async (_: any, { id }: { id: string }) => {
-      try {
-        const productId = parseInt(id);
-        
-        if (isNaN(productId)) {
-          throw new UserInputError('Invalid product ID');
-        }
-
-        const product = await productService.findById(productId);
-        
-        if (!product) {
-          throw new UserInputError('Product not found');
-        }
-
-        return product;
-      } catch (error) {
-        throw error;
+    product: async (_: unknown, { id }: ProductArgs): Promise<Product | null> => {
+      const productId = parseInt(id);
+      
+      if (isNaN(productId)) {
+        throw new UserInputError('Invalid product ID');
       }
+
+      const product = await productService.findById(productId);
+      
+      if (!product) {
+        throw new UserInputError('Product not found');
+      }
+
+      return product;
     },
 
-    productsByCategory: async (_: any, { categoryId }: { categoryId: string }) => {
+    productsByCategory: async (_: unknown, { categoryId }: ProductsByCategoryArgs): Promise<Product[]> => {
       try {
         const catId = parseInt(categoryId);
         
@@ -49,7 +97,7 @@ export const productResolvers = {
   },
 
   Mutation: {
-    createProduct: async (_: any, { input }: { input: any }, context: any) => {
+    createProduct: async (_: unknown, { input }: CreateProductArgs): Promise<Product> => {
       try {
         // Convertir category_id de string a number para validación
         const productData = {
@@ -75,7 +123,6 @@ export const productResolvers = {
         }
 
         // Verificar que la categoría existe
-        const Category = require('../models/category.model').default;
         const category = await Category.findByPk(productData.category_id);
         if (!category) {
           throw new UserInputError('Category not found');
@@ -91,7 +138,7 @@ export const productResolvers = {
       }
     },
 
-    updateProduct: async (_: any, { id, input }: { id: string, input: any }, context: any) => {
+    updateProduct: async (_: unknown, { id, input }: UpdateProductArgs): Promise<Product> => {
       try {
         const productId = parseInt(id);
         
@@ -106,7 +153,7 @@ export const productResolvers = {
         }
 
         // Preparar datos para actualización con validaciones
-        const updateData: any = {};
+        const updateData: Partial<ProductAttributes> = {};
 
         if (input.nombre !== undefined) {
           if (!input.nombre || input.nombre.trim() === '') {
@@ -147,7 +194,6 @@ export const productResolvers = {
           }
           
           // Verificar que la categoría existe
-          const Category = require('../models/category.model').default;
           const category = await Category.findByPk(categoryId);
           if (!category) {
             throw new UserInputError('Category not found');
@@ -171,7 +217,7 @@ export const productResolvers = {
       }
     },
 
-    deleteProduct: async (_: any, { id }: { id: string }, context: any) => {
+    deleteProduct: async (_: unknown, { id }: DeleteProductArgs): Promise<boolean> => {
       try {
         const productId = parseInt(id);
         
@@ -198,19 +244,18 @@ export const productResolvers = {
 
   Product: {
     // Resolver para la relación con category
-    category: async (parent: any) => {
+    category: async (parent: ProductParent): Promise<Category | null> => {
       if (parent.category) {
         return parent.category;
       }
       // Si no viene incluida, la buscamos
-      const Category = require('../models/category.model').default;
       return await Category.findByPk(parent.category_id);
     }
   },
 
   Category: {
     // Resolver para la relación con products
-    products: async (parent: any) => {
+    products: async (parent: CategoryParent): Promise<Product[]> => {
       return await productService.findByCategory(parent.id);
     }
   }
