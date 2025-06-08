@@ -3,16 +3,17 @@ import express, { Express, Request, Response } from 'express';
 import dotenv from 'dotenv';
 // NUEVO: Importar Apollo Server para GraphQL
 import { ApolloServer } from 'apollo-server-express';
-import { userRouter, postRouter,  } from './routes'; 
+import { userRouter, postRouter } from './routes'; 
 import sequelize from "./config/database";
 
-// NUEVO: Imports de GraphQL para categorías
+// NUEVO: Imports de GraphQL para categorías, productos y usuarios
 import { baseTypeDefs } from './schemas';
 import { categoryTypeDefs } from './schemas';
 import { categoryResolvers } from './resolvers';
 
 import { productResolvers } from './resolvers';
 import { productTypeDefs } from './schemas';
+
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { mergeTypeDefs, mergeResolvers } from '@graphql-tools/merge';
 import { userTypeDefs } from './schemas/user.typedefs';
@@ -31,9 +32,8 @@ app.use(express.urlencoded({ extended: true }));
 // Rutas REST aún existentes 
 app.use('/user', userRouter);
 
-
 app.get('/', (req: Request, res: Response) => {
-    res.send("Hello World");
+    res.send("Hello World - GraphQL Server with Categories, Products & Users");
 });
 
 app.get('/error', (req: Request, res: Response) => {
@@ -44,9 +44,19 @@ app.get('/notfound', (req: Request, res: Response) => {
     res.status(404).send("Hello World");
 });
 
-// Merge type definitions and resolvers
-const typeDefs = mergeTypeDefs([userTypeDefs]);
-const resolvers = mergeResolvers([userResolvers]);
+// CORREGIDO: Merge TODOS los type definitions y resolvers
+const typeDefs = mergeTypeDefs([
+  baseTypeDefs,      // Queries y Mutations base
+  categoryTypeDefs,  // Esquemas de categorías
+  productTypeDefs,   // Esquemas de productos
+  userTypeDefs       // Esquemas de usuarios
+]);
+
+const resolvers = mergeResolvers([
+  categoryResolvers, // Resolvers de categorías
+  productResolvers,  // Resolvers de productos
+  userResolvers      // Resolvers de usuarios
+]);
 
 // Create executable schema
 const schema = makeExecutableSchema({ typeDefs, resolvers });
@@ -58,6 +68,9 @@ const server = new ApolloServer({
     const context: Context = { req: req as any };
     return authMiddleware(context);
   },
+  // Agregamos introspection y playground para desarrollo
+  introspection: true,
+
 });
 
 async function startServer() {
@@ -74,6 +87,10 @@ async function startServer() {
     const PORT = process.env.PORT || 4000;
     app.listen(PORT, () => {
       console.log(`Server running at http://localhost:${PORT}${server.graphqlPath}`);
+      console.log('Available GraphQL operations:');
+      console.log('- Categories: queries and mutations');
+      console.log('- Products: queries and mutations');
+      console.log('- Users: queries and mutations with auth');
     });
   } catch (error) {
     console.error('Error starting server:', error);

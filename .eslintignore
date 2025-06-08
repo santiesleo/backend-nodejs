@@ -1,0 +1,12 @@
+dist/
+node_modules/
+*.js
+*.d.ts
+coverage/
+.nyc_output/
+docker-compose.yml
+Dockerfile
+*.md
+.env
+.env.*
+test/
