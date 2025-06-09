@@ -1,207 +1,550 @@
-![ICESI University Logo](https://res.cloudinary.com/dxhi8xsyb/image/upload/v1731991202/ICESI_logo_prin_descriptor_RGB_POSITIVO_0924_bszq4w.png)
+# Documentación Completa - API GraphQL
+## Sistema de Gestión de Usuarios, Categorías y Productos
 
-# Node.js PostgreSQL RESTful API 
+---
 
-Esta API implementa un sistema de gestión de usuarios, productos y categorías con autenticación y autorización basado en JWT, construido con Node.js, TypeScript y PostgreSQL.
+## GUÍA DE EJECUCIÓN
 
-Enlace: https://backend-nodejs-production-4c8f.up.railway.app
+### Prerrequisitos
+- Node.js (v16 o superior)
+- MySQL (v8.0 o superior)
+- Postman (para pruebas GraphQL)
 
-## Integrantes
+### Instalación y Configuración
 
-- Juan David Calderón Salamanca 
-- Santiago Escobar León
+1. **Clonar el repositorio**
+```bash
+git clone <tu-repositorio>
+cd backend-panaderia
+```
 
-## Características
+2. **Instalar dependencias**
+```bash
+npm install
+```
 
-- Sistema de autenticación y autorización con JWT
-- Gestión de usuarios con roles (admin y usuario regular)
-- Gestión de productos y categorías
-- Operaciones CRUD completas para todas las entidades
-- Validación de datos con Zod
-- Manejo de errores global
-- Pruebas unitarias con Jest
-- Clean Architecture
+3. **Configurar variables de entorno**
+Crear archivo `.env`:
+```env
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=tu_password
+DB_NAME=panaderia_db
+DB_PORT=3306
+JWT_SECRET=tu_jwt_secret_super_seguro
+PORT=4000
+```
 
-## Tecnologías utilizadas
+4. **Configurar base de datos**
+```bash
+# Crear la base de datos
+mysql -u root -p
+CREATE DATABASE panaderia_db;
+```
 
-- Node.js
-- TypeScript
-- Express.js
-- PostgreSQL
-- Sequelize (ORM)
-- JWT (jsonwebtoken)
-- bcrypt (encriptación de contraseñas)
-- Docker y Docker Compose
-- Jest (pruebas unitarias)
-- Zod (validación de esquemas)
+5. **Ejecutar migraciones**
+```bash
+# Ejecutar el script SQL de creación de tablas
+mysql -u root -p panaderia_db < database/schema.sql
+```
 
-## Estructura del proyecto
+6. **Iniciar el servidor**
+```bash
+npm start
+# El servidor estará disponible en: http://localhost:4000/graphql
+```
+
+### Acceso a GraphQL Playground
+- **URL:** `http://localhost:4000/graphql`
+- **Interfaz:** GraphQL Playground integrada
+- **Postman:** Configurar endpoint POST a `http://localhost:4000/graphql`
+
+---
+
+## ENDPOINTS Y OPERACIONES
+
+### QUERIES (Consultas)
+
+#### 1. Usuarios
+
+**Obtener todos los usuarios**
+```graphql
+query {
+  users {
+    id
+    name
+    email
+    roles {
+      id
+      name
+    }
+  }
+}
+```
+
+**Obtener usuario por ID**
+```graphql
+query {
+  user(id: "1") {
+    id
+    name
+    email
+    roles {
+      id
+      name
+    }
+  }
+}
+```
+
+#### 2. Categorías
+
+**Obtener todas las categorías**
+```graphql
+query {
+  categories {
+    id
+    name
+    description
+    createdAt
+  }
+}
+```
+
+**Obtener categoría por ID**
+```graphql
+query {
+  category(id: "1") {
+    id
+    name
+    description
+  }
+}
+```
+
+#### 3. Productos
+
+**Obtener todos los productos**
+```graphql
+query {
+  products {
+    id
+    nombre
+    description
+    price
+    stock
+    category {
+      id
+      name
+    }
+  }
+}
+```
+
+**Obtener producto por ID**
+```graphql
+query {
+  product(id: "1") {
+    id
+    nombre
+    description
+    price
+    image
+    stock
+    category {
+      id
+      name
+      description
+    }
+  }
+}
+```
+
+### MUTATIONS (Modificaciones)
+
+#### 1. Autenticación
+
+**Login**
+```graphql
+mutation {
+  login(email: "nuevo@email.com", password: "admin123") {
+    token
+    user {
+      id
+      name
+      email
+      roles { id name }
+    }
+  }
+}
+```
+
+**Registro**
+```graphql
+mutation {
+  register(input: {
+    name: "Prueba Usuario"
+    email: "prueba@email.com"
+    password: "prueba123"
+    roleIds: [1]
+  }) {
+    token
+    user {
+      id
+      name
+      email
+      roles { id name }
+    }
+  }
+}
+```
+
+#### 2. Gestión de Usuarios
+
+**Actualizar usuario**
+```graphql
+mutation {
+  updateUser(id: "1", input: {
+    name: "Usuario Actualizado"
+    password: "nuevoPassword123"
+    roleIds: [1,2]
+  }) {
+    id
+    name
+    email
+    roles { id name }
+  }
+}
+```
+
+**Eliminar usuario**
+```graphql
+mutation {
+  deleteUser(id: "1")
+}
+```
+
+#### 3. Gestión de Categorías
+
+**Crear categoría**
+```graphql
+mutation {
+  createCategory(input: {
+    name: "panes artesanales"
+    description: "de los panes"
+  }) {
+    id
+    name
+    description
+    createdAt
+  }
+}
+```
+
+**Actualizar categoría**
+```graphql
+mutation {
+  updateCategory(id: "1", input: {
+    name: "pan actualizado"
+    description: "bodrio stars"
+  }) {
+    id
+    name
+    description
+    updatedAt
+  }
+}
+```
+
+**Eliminar categoría**
+```graphql
+mutation {
+  deleteCategory(id: "1")
+}
+```
+
+#### 4. Gestión de Productos
+
+**Crear producto**
+```graphql
+mutation {
+  createProduct(input: {
+    nombre: "ponquesito"
+    description: "es un ponqué pero chikito"
+    price: 999.99
+    image: "ponquesito.jpg"
+    stock: 50
+    category_id: 1
+  }) {
+    id
+    nombre
+    description
+    price
+    image
+    stock
+    category_id
+    createdAt
+    category {
+      id
+      name
+    }
+  }
+}
+```
+
+**Actualizar producto**
+```graphql
+mutation {
+  updateProduct(id: "1", input: {
+    nombre: "ponque grande"
+    price: 1199.99
+    stock: 25
+  }) {
+    id
+    nombre
+    price
+    stock
+    updatedAt
+  }
+}
+```
+
+**Eliminar producto**
+```graphql
+mutation {
+  deleteProduct(id: "1")
+}
+```
+
+---
+
+## TIPOS DE DOCUMENTOS Y ESQUEMAS
+
+### Input Types (Tipos de Entrada)
+
+#### RegisterInput
+```graphql
+input RegisterInput {
+  name: String!
+  email: String!
+  password: String!
+  roleIds: [Int!]!
+}
+```
+
+#### UpdateUserInput
+```graphql
+input UpdateUserInput {
+  name: String
+  password: String
+  roleIds: [Int!]
+}
+```
+
+#### CategoryInput
+```graphql
+input CategoryInput {
+  name: String!
+  description: String
+}
+```
+
+#### ProductInput
+```graphql
+input ProductInput {
+  nombre: String!
+  description: String
+  price: Float!
+  image: String
+  stock: Int!
+  category_id: Int!
+}
+```
+
+#### UpdateProductInput
+```graphql
+input UpdateProductInput {
+  nombre: String
+  description: String
+  price: Float
+  image: String
+  stock: Int
+  category_id: Int
+}
+```
+
+### Output Types (Tipos de Salida)
+
+#### User
+```graphql
+type User {
+  id: ID!
+  name: String!
+  email: String!
+  roles: [Role!]!
+  createdAt: String
+  updatedAt: String
+}
+```
+
+#### Role
+```graphql
+type Role {
+  id: ID!
+  name: String!
+  description: String
+}
+```
+
+#### Category
+```graphql
+type Category {
+  id: ID!
+  name: String!
+  description: String
+  createdAt: String
+  updatedAt: String
+}
+```
+
+#### Product
+```graphql
+type Product {
+  id: ID!
+  nombre: String!
+  description: String
+  price: Float!
+  image: String
+  stock: Int!
+  category_id: Int!
+  category: Category
+  createdAt: String
+  updatedAt: String
+}
+```
+
+#### AuthPayload
+```graphql
+type AuthPayload {
+  token: String!
+  user: User!
+}
+```
+
+---
+
+## AUTENTICACIÓN Y AUTORIZACIÓN
+
+### Cómo usar el token JWT
+
+1. **Obtener token mediante login**
+2. **Incluir en headers** de las siguientes peticiones:
+```json
+{
+  "Authorization": "Bearer tu_jwt_token_aqui"
+}
+```
+
+### Roles del sistema
+- **superadmin**: Acceso completo
+- **admin**: Gestión de usuarios y contenido
+- **user**: Acceso básico
+
+---
+
+## HERRAMIENTAS DE DESARROLLO
+
+### Postman Configuration
+```json
+{
+  "url": "http://localhost:4000/graphql",
+  "method": "POST",
+  "headers": {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer {{token}}"
+  },
+  "body": {
+    "query": "tu consulta graphql aqui"
+  }
+}
+```
+
+### Variables de entorno para Postman
+- `baseUrl`: `http://localhost:4000`
+- `token`: `[token obtenido del login]`
+
+---
+
+## DEBUGGING Y TROUBLESHOOTING
+
+### Errores comunes
+
+1. **"Could not load GraphQL schema"**
+   - Verificar que el servidor esté ejecutándose
+   - Comprobar conexión a base de datos
+
+2. **"Authentication required"**
+   - Incluir token JWT en headers
+   - Verificar que el token no haya expirado
+
+3. **"Database connection failed"**
+   - Verificar credenciales en `.env`
+   - Asegurar que MySQL esté ejecutándose
+
+### Logs del servidor
+```bash
+npm start
+# Ver logs en tiempo real para debugging
+```
+
+---
+
+## EJEMPLOS DE USO COMPLETO
+
+### Flujo típico de uso
+
+1. **Registrar usuario**
+2. **Hacer login**
+3. **Crear categorías**
+4. **Crear productos**
+5. **Consultar datos**
+
+### Ejemplo completo en Postman
+
+```json
+// 1. Login
+{
+  "query": "mutation { login(email: \"admin@example.com\", password: \"admin123\") { token user { id name } } }"
+}
+
+// 2. Crear categoría (con token)
+{
+  "query": "mutation { createCategory(input: { name: \"Panadería\", description: \"Productos de panadería\" }) { id name } }"
+}
+
+// 3. Crear producto (con token)
+{
+  "query": "mutation { createProduct(input: { nombre: \"Pan Francés\", description: \"Pan crujiente\", price: 2.50, stock: 100, category_id: 1 }) { id nombre price } }"
+}
+```
+
+---
+
+## ESTRUCTURA DEL PROYECTO
 
 ```
+backend-panaderia/
 ├── src/
-│   ├── config/            # Configuración (base de datos, etc.)
-│   ├── controllers/       # Controladores de la API
-│   ├── exceptions/        # Definiciones de errores personalizados
-│   ├── interfaces/        # Interfaces y tipos
-│   ├── middlewares/       # Middleware (auth, validación, roles)
-│   ├── models/            # Modelos de datos
-│   ├── routes/            # Definición de rutas
-│   ├── schemas/           # Esquemas de validación (Zod)
-│   ├── services/          # Lógica de negocio
-│   ├── test/              # Pruebas unitarias
-│   ├── utils/             # Utilidades
-│   └── index.ts           # Punto de entrada de la aplicación
-├── .gitignore
-├── docker-compose.yml
-├── Dockerfile
+│   ├── resolvers/
+│   ├── schema/
+│   ├── models/
+│   ├── middleware/
+│   └── utils/
+├── database/
+│   ├── schema.sql
+│   └── reset.sql
+├── .env
 ├── package.json
-├── README.md
-└── tsconfig.json
+└── README.md
 ```
 
-## Requisitos previos
-
-- Node.js (v18 o superior)
-- npm o yarn
-- PostgreSQL (local o Docker)
-- Docker y Docker Compose (para ejecución en contenedores)
-
-## Instalación y configuración
-
-### Opción 1: Instalación local
-
-1. Clonar el repositorio:
-   ```bash
-   git clone https://github.com/santiesleo/backend-nodejs.git 
-   cd backend-nodejs
-   ```
-
-2. Instalar dependencias:
-   ```bash
-   npm install
-   ```
-
-3. Configurar variables de entorno:
-   Crear un archivo `.env` con las siguientes variables:
-   ```
-   NODE_ENV=development
-   PORT=3000
-   DB_HOST=localhost
-   DB_PORT=5432
-   DB_NAME=api_db
-   DB_USER=postgres
-   DB_PASSWORD=postgres
-   JWT_SECRET=your_jwt_secret
-   JWT_EXPIRES_IN=24h
-   ```
-
-4. Compilar el código TypeScript:
-   ```bash
-   npm run build
-   ```
-
-5. Inicializar la base de datos:
-   ```bash
-   npm run db:init
-   ```
-
-6. Iniciar la aplicación:
-   ```bash
-   npm start
-   ```
-
-7. Para desarrollo:
-   ```bash
-   npm run dev
-   ```
-
-### Opción 2: Usando Docker
-
-1. Clonar el repositorio:
-   ```bash
-   git clone https://github.com/santiesleo/backend-nodejs.git
-   cd backend-nodejs
-   ```
-
-2. Iniciar los contenedores:
-   ```bash
-   docker-compose up -d
-   ```
-
-3. Ejecutar el script de inicialización:
-   ```bash
-   docker-compose exec app npm run db:init
-   ```
-
-## Endpoints de la API
-
-La API implementa los siguientes endpoints:
-
-### Usuarios
-
-- `GET /user` - Obtener todos los usuarios
-- `GET /user/:id` - Obtener usuario por ID
-- `GET /user/profile` - Obtener perfil del usuario autenticado
-- `POST /user` - Crear nuevo usuario
-- `PUT /user/:id` - Actualizar usuario
-- `DELETE /user/:id` - Eliminar usuario
-- `POST /user/login` - Iniciar sesión y obtener token JWT
-
-### Categorías
-
-- `GET /category` - Obtener todas las categorías
-- `GET /category/:id` - Obtener categoría por ID
-- `POST /category` - Crear nueva categoría (solo admin)
-- `PUT /category/:id` - Actualizar categoría (solo admin)
-- `DELETE /category/:id` - Eliminar categoría (solo admin)
-
-### Productos
-
-- `GET /product` - Obtener todos los productos
-- `GET /product/:id` - Obtener producto por ID
-- `GET /product/category/:categoryId` - Obtener productos por categoría
-- `POST /product` - Crear nuevo producto (solo admin)
-- `PUT /product/:id` - Actualizar producto (solo admin)
-- `DELETE /product/:id` - Eliminar producto (solo admin)
-
-## Autenticación
-
-La API utiliza autenticación basada en tokens JWT. Para acceder a las rutas protegidas, se debe incluir el token JWT en el encabezado de la solicitud:
-
-```
-Authorization: Bearer <token>
-```
-
-## Roles y Permisos
-
-El sistema implementa dos tipos de roles:
-- **Usuario regular**: Acceso limitado a operaciones de lectura y gestión de su propio perfil
-- **Admin**: Acceso completo a todas las operaciones, incluida la gestión de productos y categorías
-
-## Pruebas
-
-### Ejecutar pruebas unitarias
-
-```bash
-npm test
-```
-
-### Ejecutar pruebas con cobertura
-
-```bash
-npm test -- --coverage
-```
-
-### Ejecutar pruebas en modo watch
-
-```bash
-npm run test:watch
-```
-
-## Consideraciones de seguridad
-
-- Todas las contraseñas se almacenan encriptadas usando bcrypt
-- Los tokens JWT tienen un tiempo de expiración configurable
-- Las rutas sensibles están protegidas por middleware de autenticación y autorización
-- Se implementa validación de datos con Zod en todas las entradas
-- Middleware de roles para controlar el acceso a funcionalidades específicas
