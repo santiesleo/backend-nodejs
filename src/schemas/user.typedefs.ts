@@ -38,6 +38,7 @@ export const userTypeDefs = gql`
     me: User
     users: [User!]!
     user(id: ID!): User
+    roles: [Role!]!
   }
 
   type Mutation {

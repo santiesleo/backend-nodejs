@@ -74,6 +74,11 @@ export const userResolvers = {
       if (!user) throw new AuthenticationError('Not authenticated');
       return User.findByPk(id, { include: [Role] });
     },
+
+    roles: async (_: unknown, __: unknown, { user }: Context): Promise<Role[]> => {
+      // Puedes agregar validación si solo ciertos usuarios pueden ver los roles
+      return Role.findAll();
+    },
   },
 
   Mutation: {
