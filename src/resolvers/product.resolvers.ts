@@ -1,9 +1,11 @@
-import { UserInputError } from 'apollo-server-express';
+import { UserInputError, AuthenticationError } from 'apollo-server-express';
 
 import { productService } from '../services/product.service';
 import { productSchema } from '../schemas/product.schema';
 import Category from '../models/category.model';
 import { Product, ProductAttributes } from '../models/product.model';
+import { Context } from '../interfaces/context.interface';
+import { Role } from '../models/role.model';
 
 // Tipos para los argumentos de GraphQL
 interface ProductArgs {
@@ -97,7 +99,12 @@ export const productResolvers = {
   },
 
   Mutation: {
-    createProduct: async (_: unknown, { input }: CreateProductArgs): Promise<Product> => {
+    createProduct: async (_: unknown, { input }: CreateProductArgs, context: Context): Promise<Product> => {
+      // Solo superadmin puede crear productos
+      const user = context.user;
+      if (!user || !user.roles?.some((role: Role) => role.name === 'superadmin')) {
+        throw new AuthenticationError('Solo el superadmin puede crear productos');
+      }
       try {
         // Convertir category_id de string a number para validación
         const productData = {
@@ -138,7 +145,12 @@ export const productResolvers = {
       }
     },
 
-    updateProduct: async (_: unknown, { id, input }: UpdateProductArgs): Promise<Product> => {
+    updateProduct: async (_: unknown, { id, input }: UpdateProductArgs, context: Context): Promise<Product> => {
+      // Solo superadmin puede actualizar productos
+      const user = context.user;
+      if (!user || !user.roles?.some((role: Role) => role.name === 'superadmin')) {
+        throw new AuthenticationError('Solo el superadmin puede actualizar productos');
+      }
       try {
         const productId = parseInt(id);
         
@@ -217,7 +229,12 @@ export const productResolvers = {
       }
     },
 
-    deleteProduct: async (_: unknown, { id }: DeleteProductArgs): Promise<boolean> => {
+    deleteProduct: async (_: unknown, { id }: DeleteProductArgs, context: Context): Promise<boolean> => {
+      // Solo superadmin puede eliminar productos
+      const user = context.user;
+      if (!user || !user.roles?.some((role: Role) => role.name === 'superadmin')) {
+        throw new AuthenticationError('Solo el superadmin puede eliminar productos');
+      }
       try {
         const productId = parseInt(id);
         
